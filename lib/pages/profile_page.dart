@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../data/dummy_data.dart';
 import '../models/models.dart';
+import 'edit_profile_page.dart';
 import 'project_detail_page.dart';
 
 void main() => runApp(const MyApp());
@@ -48,12 +49,13 @@ class _ProfilePageState extends State<ProfilePage> {
   static const _allSkills = ['Flutter', 'Dart', 'UI/UX', 'Firebase', 'Git'];
 
   final Set<String> _skills = {'Flutter'};
-
-  static const _name = 'Betari Vesya Candra';
-  static const _bio =
-      'Mahasiswa Teknik Informatika yang sedang belajar Flutter. '
-      'Suka membangun aplikasi mobile yang sederhana, rapi, dan berguna. '
-      'Sedang mengerjakan proyek akhir semester bertema kartu profil digital.';
+  Profile _profile = const Profile(
+    name: 'Betari Vesya Candra',
+    bio:
+        'Mahasiswa Teknik Informatika yang sedang belajar Flutter. '
+        'Suka membangun aplikasi mobile yang sederhana, rapi, dan berguna. '
+        'Sedang mengerjakan proyek akhir semester bertema kartu profil digital.',
+  );
 
   void _openProjectDetail(Project project) {
     Navigator.push(
@@ -82,6 +84,18 @@ class _ProfilePageState extends State<ProfilePage> {
           action: action,
         ),
       );
+  }
+
+  Future<void> _openEditProfile() async {
+    final result = await Navigator.push<Profile>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditProfilePage(profile: _profile),
+      ),
+    );
+
+    if (!mounted || result == null) return;
+    setState(() => _profile = result);
   }
 
   Future<bool> _showConfirmDialog({
@@ -113,7 +127,7 @@ class _ProfilePageState extends State<ProfilePage> {
     if (!_isFollowing) {
       _setFollowing(true);
       _showSnack(
-        'Kamu mulai mengikuti $_name',
+        'Kamu mulai mengikuti ${_profile.name}',
         action: SnackBarAction(
           label: 'BATAL',
           onPressed: () => _setFollowing(false),
@@ -124,14 +138,14 @@ class _ProfilePageState extends State<ProfilePage> {
 
     final confirmed = await _showConfirmDialog(
       title: 'Berhenti mengikuti?',
-      message: 'Kamu tidak akan lagi melihat pembaruan dari $_name.',
+      message: 'Kamu tidak akan lagi melihat pembaruan dari ${_profile.name}.',
       confirmLabel: 'Berhenti',
     );
 
     if (!confirmed || !mounted) return;
 
     _setFollowing(false);
-    _showSnack('Kamu berhenti mengikuti $_name');
+    _showSnack('Kamu berhenti mengikuti ${_profile.name}');
   }
 
   void _onSkillChanged(String skill, bool selected) {
@@ -169,7 +183,16 @@ class _ProfilePageState extends State<ProfilePage> {
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Kartu Profil Digital')),
+      appBar: AppBar(
+        title: const Text('Kartu Profil Digital'),
+        actions: [
+          IconButton(
+            onPressed: _openEditProfile,
+            icon: const Icon(Icons.edit),
+            tooltip: 'Edit profil',
+          ),
+        ],
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -194,7 +217,7 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             const SizedBox(height: 12),
             Text(
-              _name,
+              _profile.name,
               textAlign: TextAlign.center,
               style: textTheme.headlineSmall,
             ),
@@ -249,7 +272,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       Text('Tentang', style: textTheme.titleMedium),
                       const SizedBox(height: 8),
                       Text(
-                        _bio,
+                        _profile.bio,
                         maxLines: _isBioExpanded ? null : 2,
                         overflow: TextOverflow.ellipsis,
                       ),
